@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+
+#
+# winpager: a dynamic window paging system for xorg
+#
+#   by Kevin MacMartin <prurigro@gmail.com>
+#   released under the MIT license
+#
+#   requirements:
+#     wmctrl   : http://tomas.styblo.name/wmctrl
+#     xwininfo : http://xorg.freedesktop.org
+#
+
+APPNAME=$(grep -o -e "[^\/]*$" <<< "$0")
+TMPDIR="/tmp/${APPNAME}"
+
+function _help(){
+    echo -e "${APPNAME} - a dynamic window paging system\n"
+    echo -e "Usage: ${APPNAME} [command] {num(s)}\n"
+    echo "Commands:"
+    echo -e "    ${APPNAME} set {num}\t\tassign a window to a pager {num}"
+    echo -e "    ${APPNAME} get {num}\t\tgo to its desktop and focus {num}"
+    echo -e "    ${APPNAME} toggle\t\ttoggle focus between {num} 1 & 2"
+    echo -e "    ${APPNAME} toggle {num} {num}  toggle {num} & {num}"
+    echo -e "    ${APPNAME} unset {num}\t\tunassign the window from pager {num}"
+    echo -e "    ${APPNAME} clear\t\tremove all pager assignments\n"
+    echo -e "    ${APPNAME} help\t\tshow this help output"
+}
+
+function _syntaxerror(){
+    echo -e "Error: run with 'set', 'unset' or 'get', followed by a number\n"
+    _help
+    exit 1
+}
+
+function _set(){
+    xwininfo | grep "xwininfo: Window id:" \
+        | sed 's|^[^0-9]*||;s|\ .*$||' \
+            > "$1"
+}
+
+function _unset(){
+    [[ -f "$1" ]] \
+        && rm "$1"
+}
+
+function _get(){
+    # ensure the requested pager ref exists and still has its window
+    [[ ! -f "$1" ]] && exit 1
+    if [[ -s "$1" ]]; then
+        if [[ $(wmctrl -l \
+            | sed 's|^0x0||;s|\ .*||' \
+            | grep $(sed 's|0x||' ${1})) ]]; then
+                wmctrl -i -a "$(cat $1)"
+        else
+            # If the window !exists, delete pager ref and exit
+            _unset "$1"
+            exit 1
+        fi
+    else
+        rm "$1"
+        exit 1
+    fi
+}
+
+# Create the temp directory if it doesn't exist
+[[ ! -d "$TMPDIR" ]] && install -d "$TMPDIR"
+
+# Exit with error if no arguments are given, otherwise parse for commands
+if [[ -n "$1" ]]; then
+
+    # The 'help' command
+    if [ "$1" = "h" ] || [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+        _help
+        exit
+
+    # The 'clear' command
+    elif [[ "$1" = "clear" ]]; then
+        rm "${TMPDIR}"/*
+        exit
+
+    # The 'toggle' command
+    elif [[ "$1" = "toggle" ]]; then
+        # Set the first pager ref number to toggle
+        if [[ -n "$2" ]]; then
+            [[ $(grep -E '^[0-9][0-9]*$' <<< "$2") ]] \
+                && NUM1=$2 \
+                || exit 1
+        else
+            NUM1=1
+        fi
+
+        # Set the second pager ref number to toggle
+        if [[ -n "$3" ]]; then
+            [[ $(grep -E '^[0-9][0-9]*$' <<< "$3") ]] \
+                && NUM2="$3" \
+                || exit 1
+        else
+            NUM2=2
+        fi
+
+        # Remove the toggle file and exit if either no longer exist
+        if [[ ! -f "${TMPDIR}/${NUM1}" ]] \
+            || [[ ! -f "${TMPDIR}/${NUM2}" ]]; then
+                [[ -f "${TMPDIR}/toggle" ]] && rm "${TMPDIR}/toggle"
+                exit 1
+        fi
+
+        # If both pager ref nums exist, create the toggle file if !exist
+        [[ ! -f "${TMPDIR}/toggle" ]] \
+            && echo $NUM1 > "${TMPDIR}/toggle"
+
+        # Set the pager ref num that isn't recorded (or num1 if neither)
+        [[ $(grep $NUM1 < <(cat "${TMPDIR}/toggle")) ]] \
+            && DO_TOGGLE=$NUM2 \
+            || DO_TOGGLE=$NUM1
+
+        # Attempt to 'get' the window we set
+        _get "${TMPDIR}/${DO_TOGGLE}"
+        if [[ ! -s "${TMPDIR}/${DO_TOGGLE}" ]]; then
+            # Remove the toggle file if the pager ref num is gone
+            [[ -f "${TMPDIR}/toggle" ]] && rm "${TMPDIR}/toggle"
+            exit 1
+        else
+            # Record the updated pager ref num if it still exists
+            echo $DO_TOGGLE > "${TMPDIR}/toggle"
+            exit
+        fi
+
+    # Fail if '$2' doesn't exist or isn't a number
+    else
+        if [[ -z "$2" ]]; then
+            _syntaxerror
+        elif [[ ! $(grep -E '^[0-9][0-9]*$' <<< "$2") ]]; then
+            _syntaxerror
+        fi
+    fi
+fi
+
+# Parse for the remaining commands
+case "$1" in
+    set)
+        # The 'set' command
+        _set "${TMPDIR}/${2}"
+        ;;
+    unset)
+        # The 'unset' command
+        _unset "${TMPDIR}/${2}"
+        ;;
+    get)
+        # The 'get' command
+        _get "${TMPDIR}/${2}"
+        ;;
+    *)
+        # Fail for anything else
+        _syntaxerror
+        ;;
+esac
