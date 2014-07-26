@@ -8,7 +8,7 @@ INSTALL_RO=install -Dm644
 # LOCATIONS
 PREFIX=/usr
 BINDIR=$(DESTDIR)$(PREFIX)/bin
-MANDIR=$(DESTDIR)$(PREFIX)/man/man1
+MANDIR=$(DESTDIR)$(PREFIX)/share/man/man1
 
 install:
 	$(INSTALL_RX) $(SCRIPT) $(BINDIR)/$(SCRIPT)
