@@ -111,10 +111,14 @@ if [[ -n "$1" ]]; then
             && echo $NUM1 > "${TMPDIR}/toggle"
 
         # Set the pager ref num that isn't recorded (or num1 if neither)
-        if [[ $(grep $NUM1 < <(cat "${TMPDIR}/toggle")) ]]; then
-            [[ $(xwincheckid $NUM2) ]] && DO_TOGGLE=$NUM1 || DO_TOGGLE=$NUM2
+        if [[ $(xwincheckid $(cat "${TMPDIR}/${NUM1}")) = 1 ]]; then
+            DO_TOGGLE=$NUM2
+        elif [[ $(xwincheckid $(cat "${TMPDIR}/${NUM2}")) = 1 ]]; then
+            DO_TOGGLE=$NUM1
+        elif [[ $(cat "${TMPDIR}/toggle") = $NUM1 ]]; then
+            DO_TOGGLE=$NUM2
         else
-            [[ $(xwincheckid $NUM2) ]] && DO_TOGGLE=$NUM2 || DO_TOGGLE=$NUM1
+            DO_TOGGLE=$NUM1
         fi
 
         # Attempt to 'get' the window we set
