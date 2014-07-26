@@ -1,0 +1,84 @@
+.\" winpager man page
+.if !\n(.g \{\
+.	if !\w|\*(lq| \{\
+.		ds lq ``
+.		if \w'\(lq' .ds lq "\(lq
+.	\}
+.	if !\w|\*(rq| \{\
+.		ds rq ''
+.		if \w'\(rq' .ds rq "\(rq
+.	\}
+.\}
+.ie t .ds Tx \s-1T\v'.4n'\h'-.1667'E\v'-.4n'\h'-.125'X\s0
+. el  .ds Tx TeX
+.de Id
+. ds Yr \\$4
+. substring Yr 0 3
+. ds Mn \\$4
+. substring Mn 5 6
+. ds Dy \\$4
+. substring Dy 8 9
+. \" ISO 8601 date, complete format, extended representation
+. ds Dt \\*(Yr-\\*(Mn-\\*(Dy
+..
+.TH WINPAGER 1 "winpager" "User Commands"
+.hy 0
+.
+.SH NAME
+winpager \- A dynamic window paging system for X\.Org \fIhttp://www\.x\.org/wiki\fR\.
+.o
+.
+.SH "DESCRIPTION"
+.B winpager
+This tool allows windows to have numbers assigned to them, which can then be used to switch to the desktop containing the assigned window and focus on it\.
+.
+.P
+To make best use of this script, keyboard shortcuts should be assigned to the \fBwinpager set\fR and \fBwinpager get\fR for a range of numbers, as well as possibly ones for \fBwinpager clear\fR and \fBwinpager toggle\fR\.
+.
+.SH "REQUIREMENTS"
+.B wmctrl
+\fIhttp://tomas\.styblo\.name/wmctrl\fR
+.
+.P
+.B xwininfo
+\fIhttp://www\.x\.org/wiki\fR
+.
+.P
+.B GNU Bash
+\fIhttp://www\.gnu\.org/software/bash\fR
+.
+.SH "Usage"
+\fBwinpager [command] {num(s)}\fR
+.
+.SS "Commands"
+\fBwinpager set {num}\fR: assign a window to a pager {num}
+.
+.P
+\fBwinpager get {num}\fR: go to its desktop and focus {num}
+.
+.P
+\fBwinpager toggle\fR: toggle focus between {num} 1 and 2
+.
+.P
+\fBwinpager toggle {num} {num}\fR: toggle {num} and {num}
+.
+.P
+\fBwinpager unset {num}\fR: unassign the window from pager {num}
+.
+.P
+\fBwinpager clear\fR: remove all pager assignments
+.
+.P
+\fBwinpager help\fR: show this help output
+.
+.SH "CREDITS"
+Written by Kevin MacMartin:
+.
+.P
+GitHub Projects \fIhttps://github\.com/prurigro\fR
+.
+.P
+Arch Linux AUR Packages \fIhttps://aur\.archlinux\.org/packages/?SeB=m&K=prurigro\fR
+.
+.SH "LICENSE"
+Licensed under the MIT license \fIhttp://opensource\.org/licenses/MIT\fR\.
