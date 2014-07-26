@@ -1,0 +1,35 @@
+# COMPILER
+CC=gcc
+CFLAGS=-lX11
+# EXECUTABLE
+EXE=xwincheckid
+SRC=$(EXE).c
+# SCRIPT (MAIN PROGRAM)
+SCRIPT=winpager
+MAN=$(SCRIPT).1
+# COMMANDS
+DELETE=rm
+INSTALL_RX=install -Dm755
+INSTALL_RO=install -Dm644
+# LOCATIONS
+PREFIX=/usr
+BINDIR=$(DESTDIR)$(PREFIX)/bin
+MANDIR=$(DESTDIR)$(PREFIX)/man/man1
+
+all: $(EXE)
+
+$(EXE):
+	$(CC) $(CFLAGS) $(SRC) $< -o $@
+
+clean:
+	$(DELETE) $(EXE)
+
+install:
+	$(INSTALL_RX) $(EXE) $(BINDIR)/$(EXE)
+	$(INSTALL_RX) $(SCRIPT) $(BINDIR)/$(SCRIPT)
+	$(INSTALL_RO) $(MAN) $(MANDIR)/$(MAN)
+
+uninstall:
+	$(DELETE) $(BINDIR)/$(EXE)
+	$(DELETE) $(BINDIR)/$(SCRIPT)
+	$(DELETE) $(MANDIR)/$(MAN)
