@@ -11,16 +11,17 @@ To make best use of this script, keyboard shortcuts should be assigned to the `w
 ## Requirements ##
 
 * [wmctrl](http://tomas.styblo.name/wmctrl)
+* [xprop](http://www.x.org/wiki)
 * [xwininfo](http://www.x.org/wiki)
-* [GNU Bash](http://www.gnu.org/software/bash)
-* [GNU Make](http://www.gnu.org/software/make)
-* [GCC](https://gcc.gnu.org)
-* [libx11](http://www.x.org/wiki) (X11/Xlib.h)
+* [bash](http://www.gnu.org/software/bash)
 
-## Build and Install ##
+### Optional ###
 
-1. To build the binary, ensure all the dependencies are installed and run: `make`.
-2. The `DESTDIR` and `PREFIX` variables can optionally be set to configure the base install directory and prefix, and installing can be done by running: `make DESTDIR=/ PREFIX=/usr install`.
+* [make](http://www.gnu.org/software/make) (facilitate install)
+
+## Install ##
+
+The `DESTDIR` and `PREFIX` variables can optionally be set to configure the base install directory and prefix, and installing can be done by running: `make DESTDIR=/ PREFIX=/usr install`.
 
 ## Usage ##
 

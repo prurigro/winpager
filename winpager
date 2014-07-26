@@ -8,6 +8,7 @@
 #
 #   requirements:
 #     wmctrl   : http://tomas.styblo.name/wmctrl
+#     xprop : http://xorg.freedesktop.org
 #     xwininfo : http://xorg.freedesktop.org
 #
 
@@ -110,10 +111,11 @@ if [[ -n "$1" ]]; then
         [[ ! -f "${TMPDIR}/toggle" ]] \
             && echo $NUM1 > "${TMPDIR}/toggle"
 
-        # Set the pager ref num that isn't recorded (or num1 if neither)
-        if [[ $(xwincheckid $(cat "${TMPDIR}/${NUM1}")) = 1 ]]; then
+        # Set the pager ref num based on the current state
+        CURRWIN=$(xprop -root _NET_ACTIVE_WINDOW | sed 's/.* //')
+        if [[ $(cat "${TMPDIR}/${NUM1}") = $CURRWIN ]]; then
             DO_TOGGLE=$NUM2
-        elif [[ $(xwincheckid $(cat "${TMPDIR}/${NUM2}")) = 1 ]]; then
+        elif [[ $(cat "${TMPDIR}/${NUM2}") = $CURRWIN ]]; then
             DO_TOGGLE=$NUM1
         elif [[ $(cat "${TMPDIR}/toggle") = $NUM1 ]]; then
             DO_TOGGLE=$NUM2
