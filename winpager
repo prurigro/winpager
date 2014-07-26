@@ -53,8 +53,8 @@ function _get(){
             | grep $(sed 's|0x||' ${1})) ]]; then
                 wmctrl -i -a "$(cat $1)"
         else
-            # If the window !exists, delete pager ref and exit
-            _unset "$1"
+            # The window !exists so delete pager ref and exit
+            rm "$1"
             exit 1
         fi
     else
@@ -111,9 +111,11 @@ if [[ -n "$1" ]]; then
             && echo $NUM1 > "${TMPDIR}/toggle"
 
         # Set the pager ref num that isn't recorded (or num1 if neither)
-        [[ $(grep $NUM1 < <(cat "${TMPDIR}/toggle")) ]] \
-            && DO_TOGGLE=$NUM2 \
-            || DO_TOGGLE=$NUM1
+        if [[ $(grep $NUM1 < <(cat "${TMPDIR}/toggle")) ]]; then
+            [[ $(xwincheckid $NUM2) ]] && DO_TOGGLE=$NUM1 || DO_TOGGLE=$NUM2
+        else
+            [[ $(xwincheckid $NUM2) ]] && DO_TOGGLE=$NUM2 || DO_TOGGLE=$NUM1
+        fi
 
         # Attempt to 'get' the window we set
         _get "${TMPDIR}/${DO_TOGGLE}"
