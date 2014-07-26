@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
     display = XOpenDisplay(NULL);
     XGetInputFocus(display, &focus, &revert);
     if (argc == 1){
-        printf("%d\n",focus);
+        printf("%x\n",(unsigned)focus);
     }
     else if ((Window)atoi(argv[1]) == focus){
         printf("1\n");
