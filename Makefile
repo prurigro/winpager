@@ -8,7 +8,7 @@ SRC=$(EXE).c
 SCRIPT=winpager
 MAN=$(SCRIPT).1
 # COMMANDS
-DELETE=rm
+DELETE=rm -f
 INSTALL_RX=install -Dm755
 INSTALL_RO=install -Dm644
 # LOCATIONS
