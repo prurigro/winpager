@@ -21,7 +21,7 @@
 . \" ISO 8601 date, complete format, extended representation
 . ds Dt \\*(Yr-\\*(Mn-\\*(Dy
 ..
-.TH WINPAGER 1 "winpager" "User Commands"
+.TH WINPAGER 1 "winpager (git)" "User Commands"
 .hy 0
 .
 .SH NAME
@@ -51,37 +51,51 @@ To make best use of this script, keyboard shortcuts should be assigned to the \f
 .B bash
 \fIhttp://www\.gnu\.org/software/bash\fR
 .
-.SH "Usage"
+.SH "USAGE"
 \fBwinpager [command] {num(s)}\fR
 .
 .SS "Commands"
-\fBwinpager set {num}\fR: assign a window to a pager {num}
-.
+.TP
+.BR \-set " {num}, " set " {num}"
+assign a window to a pager {num}
+.TP
 .P
-\fBwinpager get {num}\fR: go to its desktop and focus {num}
-.
+.TP
+.BR \-get " {num}, " get " {num}"
+go to its desktop and focus {num}
+.TP
 .P
-\fBwinpager toggle\fR: toggle focus between {num} 1 and 2
-.
+.TP
+.BR \-toggle ", " toggle
+toggle focus between windows 1 and 2
+.TP
 .P
-\fBwinpager toggle {num} {num}\fR: toggle {num} and {num}
-.
+.TP
+.BR \-toggle " {num} {num}, " toggle " {num} {num}"
+toggle focus between windows {num} and {num}
+.TP
 .P
-\fBwinpager unset {num}\fR: unassign the window from pager {num}
-.
+.TP
+.BR \-unset " {num}, " unset " {num}"
+unassign the window from pager {num}
+.TP
 .P
-\fBwinpager clear\fR: remove all pager assignments
-.
+.TP
+.BR \-clear ", " clear
+remove all assigned windows from the pager
+.TP
 .P
-\fBwinpager help\fR: show this help output
+.TP
+.BR \-help ", " help
+show the help
 .
 .SH "CREDITS"
 Written by Kevin MacMartin:
 .
-.P
+.IP "\(bu" 4
 GitHub Projects \fIhttps://github\.com/prurigro\fR
 .
-.P
+.IP "\(bu" 4
 Arch Linux AUR Packages \fIhttps://aur\.archlinux\.org/packages/?SeB=m&K=prurigro\fR
 .
 .SH "LICENSE"

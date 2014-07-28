@@ -29,13 +29,13 @@ The `DESTDIR` and `PREFIX` variables can optionally be set to configure the base
 
 ### Commands ###
 
-* `winpager set {num}`:	assign a window to a pager {num}
-* `winpager get {num}`: go to its desktop and focus {num}
-* `winpager toggle`: toggle focus between {num} 1 and 2
-* `winpager toggle {num} {num}`: toggle {num} and {num}
-* `winpager unset {num}`: unassign the window from pager {num}
-* `winpager clear`: remove all pager assignments
-* `winpager help`: show this help output
+* `winpager --set {num}`,  `winpager set {num}`: assign a window to a pager **{num}**
+* `winpager --get {num}`, `winpager get {num}`: go to its desktop and focus **{num}**
+* `winpager --toggle`, `winpager toggle`: toggle focus between windows 1 and 2
+* `winpager --toggle {num1} {num2}`, `winpager toggle {num} {num}`: toggle between windows **{num1}** and **{num2}**
+* `winpager --unset {num}`, `winpager unset {num}`: unassign the window from pager **{num}**
+* `winpager --clear`, `winpager clear`: remove all assigned windows from the pager
+* `winpager --help`, `winpager help`: show the help
 
 ## CREDITS ##
 

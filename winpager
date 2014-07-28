@@ -19,13 +19,13 @@ function _help(){
     echo -e "${APPNAME} - a dynamic window paging system\n"
     echo -e "Usage: ${APPNAME} [command] {num(s)}\n"
     echo "Commands:"
-    echo -e "    ${APPNAME} set {num}\t\tassign a window to a pager {num}"
-    echo -e "    ${APPNAME} get {num}\t\tgo to its desktop and focus {num}"
-    echo -e "    ${APPNAME} toggle\t\ttoggle focus between {num} 1 & 2"
-    echo -e "    ${APPNAME} toggle {num} {num}  toggle {num} & {num}"
-    echo -e "    ${APPNAME} unset {num}\t\tunassign the window from pager {num}"
-    echo -e "    ${APPNAME} clear\t\tremove all pager assignments\n"
-    echo -e "    ${APPNAME} help\t\tshow this help output"
+    echo -e "    ${APPNAME} --set {num} | set {num}\n\tassign a window to a pager {num}\n"
+    echo -e "    ${APPNAME} --get {num} | get {num}\n\tgo to its desktop and focus {num}\n"
+    echo -e "    ${APPNAME} --toggle | toggle\n\ttoggle focus between windows 1 & 2\n"
+    echo -e "    ${APPNAME} --toggle {num1} {num2} | toggle {num1} {num2}\n\ttoggle between windows {num1} & {num2}\n"
+    echo -e "    ${APPNAME} --unset {num} | unset {num}\n\tunassign the window from pager {num}\n"
+    echo -e "    ${APPNAME} --clear | clear\n\tremove all assigned windows from the pager\n"
+    echo -e "    ${APPNAME} --help | -h | help\n\tshow this help"
 }
 
 function _syntaxerror(){
@@ -69,19 +69,18 @@ function _get(){
 
 # Exit with error if no arguments are given, otherwise parse for commands
 if [[ -n "$1" ]]; then
-
     # The 'help' command
-    if [ "$1" = "h" ] || [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "help" ]; then
         _help
         exit
 
     # The 'clear' command
-    elif [[ "$1" = "clear" ]]; then
+    elif [ "$1" = "--clear" ] || [ "$1" = "clear" ]; then
         rm "${TMPDIR}"/*
         exit
 
     # The 'toggle' command
-    elif [[ "$1" = "toggle" ]]; then
+    elif [ "$1" = "--toggle" ] || [ "$1" = "toggle" ]; then
         # Set the first pager ref number to toggle
         if [[ -n "$2" ]]; then
             [[ $(grep -E '^[0-9][0-9]*$' <<< "$2") ]] \
@@ -147,15 +146,15 @@ fi
 
 # Parse for the remaining commands
 case "$1" in
-    set)
+    --set|set)
         # The 'set' command
         _set "${TMPDIR}/${2}"
         ;;
-    unset)
+    --unset|unset)
         # The 'unset' command
         _unset "${TMPDIR}/${2}"
         ;;
-    get)
+    --get|get)
         # The 'get' command
         _get "${TMPDIR}/${2}"
         ;;
