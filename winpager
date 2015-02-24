@@ -50,13 +50,13 @@ function show_help() {
     printf '\n%s\n\n' "${c_y}WinPager$c_c - ${c_w}A dynamic window paging system$c_c"
     printf '%s\n\n' "${c_b}USAGE$c_c: $c_y$script_name $c_d[${c_r}COMMAND$c_d] [${c_r}ARGS$c_d]$c_c"
     printf '%s\n' "${c_b}COMMANDS$c_c:"
-    printf '  %-118s%s\n' "$c_w--set $c_d[${c_r}NUM$c_d]$c_c            $c_d|$c_w set $c_d[${c_r}NUM$c_d]$c_c" "assign a window to a pager $c_d[${c_r}NUM$c_d]$c_c"
-    printf '  %-118s%s\n' "$c_w--get $c_d[${c_r}NUM$c_d]$c_c            $c_d|$c_w get $c_d[${c_r}NUM$c_d]$c_c" "go to its desktop and focus $c_d[${c_r}NUM$c_d]$c_c"
-    printf '  %-72s%s\n' "$c_w--toggle               $c_d|$c_w toggle$c_c" 'toggle focus between windows 1 & 2'
-    printf '  %-168s%s\n' "$c_w--toggle $c_d[${c_r}NUM1$c_d]$c_c $c_d[${c_r}NUM2$c_d]$c_c $c_d|$c_w toggle $c_d[${c_r}NUM1$c_d]$c_c $c_d[${c_r}NUM2$c_d]$c_c" "toggle between windows $c_d[${c_r}NUM1$c_d]$c_c & $c_d[${c_r}NUM2$c_d]$c_c"
-    printf '  %-118s%s\n' "$c_w--unset $c_d[${c_r}NUM$c_d]$c_c          $c_d|$c_w unset $c_d[${c_r}NUM$c_d]$c_c" "unassign the window from pager $c_d[${c_r}NUM$c_d]$c_c"
-    printf '  %-72s%s\n' "$c_w--clear                $c_d|$c_w clear$c_c" 'remove all assigned windows from the pager'
-    printf '  %-72s%s\n\n' "$c_w--help                 $c_d|$c_w help$c_c" 'show this help'
+    printf '  %-79s%s\n' "$c_w--set    $c_d|$c_w set $c_d[${c_r}NUM$c_d]$c_c" "assign a window to a pager $c_d[${c_r}NUM$c_d]$c_c"
+    printf '  %-79s%s\n' "$c_w--get    $c_d|$c_w get $c_d[${c_r}NUM$c_d]$c_c" "go to its desktop and focus $c_d[${c_r}NUM$c_d]$c_c"
+    printf '  %-58s%s\n' "$c_w--toggle $c_d|$c_w toggle$c_c" 'toggle focus between windows 1 & 2'
+    printf '  %-104s%s\n' "$c_w--toggle $c_d|$c_w toggle $c_d[${c_r}NUM1$c_d]$c_c $c_d[${c_r}NUM2$c_d]$c_c" "toggle between windows $c_d[${c_r}NUM1$c_d]$c_c & $c_d[${c_r}NUM2$c_d]$c_c"
+    printf '  %-79s%s\n' "$c_w--unset  $c_d|$c_w unset $c_d[${c_r}NUM$c_d]$c_c" "unassign the window from pager $c_d[${c_r}NUM$c_d]$c_c"
+    printf '  %-58s%s\n' "$c_w--clear  $c_d|$c_w clear$c_c" 'remove all assigned windows from the pager'
+    printf '  %-58s%s\n\n' "$c_w--help   $c_d|$c_w help$c_c" 'show this help text'
 }
 
 # Assign a window to a number
