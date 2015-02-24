@@ -162,7 +162,7 @@ function togglewins() {
 }
 
 # Test for programs required by this script before running
-declare -a missing_dependencies
+declare -a missing_dependencies=()
 for dep in "${dependencies[@]}"; do
     type -P "$dep" >/dev/null \
         || missing_dependencies=( ${missing_dependencies[@]} "$dep" )
