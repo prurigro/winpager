@@ -8,158 +8,211 @@
 #
 #   requirements:
 #     wmctrl   : http://tomas.styblo.name/wmctrl
-#     xprop : http://xorg.freedesktop.org
+#     xprop    : http://xorg.freedesktop.org
 #     xwininfo : http://xorg.freedesktop.org
 #
 
-APPNAME=$(grep -o -e "[^\/]*$" <<< "$0")
-TMPDIR="/tmp/${APPNAME}"
+# Script locations
+script_name="${0//*\/}"
+tmpdir="/tmp/$script_name"
 
-function _help(){
-    echo -e "${APPNAME} - a dynamic window paging system\n"
-    echo -e "Usage: ${APPNAME} [command] {num(s)}\n"
-    echo "Commands:"
-    echo -e "    ${APPNAME} --set {num} | set {num}\n\tassign a window to a pager {num}\n"
-    echo -e "    ${APPNAME} --get {num} | get {num}\n\tgo to its desktop and focus {num}\n"
-    echo -e "    ${APPNAME} --toggle | toggle\n\ttoggle focus between windows 1 & 2\n"
-    echo -e "    ${APPNAME} --toggle {num1} {num2} | toggle {num1} {num2}\n\ttoggle between windows {num1} & {num2}\n"
-    echo -e "    ${APPNAME} --unset {num} | unset {num}\n\tunassign the window from pager {num}\n"
-    echo -e "    ${APPNAME} --clear | clear\n\tremove all assigned windows from the pager\n"
-    echo -e "    ${APPNAME} --help | -h | help\n\tshow this help"
+# Dependencies
+dependencies=('wmctrl' 'xprop' 'xwininfo')
+
+# Colour scheme
+[[ -t 1 ]] && {
+    c_d=$'\e[1;30m' # DARK GREY
+    c_r=$'\e[1;31m' # RED
+    c_g=$'\e[1;32m' # GREEN
+    c_y=$'\e[1;33m' # YELLOW
+    c_b=$'\e[1;34m' # BLUE
+    c_v=$'\e[1;35m' # VIOLET
+    c_w=$'\e[1;37m' # WHITE
+    c_c=$'\e[0m'    # DISABLES COLOUR
 }
 
-function _syntaxerror(){
-    echo -e "Error: run with 'set', 'unset' or 'get', followed by a number\n"
-    _help
+# Display error
+function error() {
+    printf '%s %s\n' "${c_b}ERROR$c_c:" "$c_w$1$c_c" >&2
     exit 1
 }
 
-function _set(){
-    xwininfo | grep "xwininfo: Window id:" \
-        | sed 's|^[^0-9]*||;s|\ .*$||' \
-            > "$1"
+# Display a syntax error and show the help
+function syntaxerror() {
+    printf '\n' >&2
+    error "run with ${c_w}set$c_c, ${c_w}unset$c_c or ${c_w}get$c_c, followed by a number"
+    show_help
+    exit 1
 }
 
-function _unset(){
+# Display help information
+function show_help() {
+    printf '\n%s\n\n' "${c_y}WinPager$c_c - ${c_w}A dynamic window paging system$c_c"
+    printf '%s\n\n' "${c_b}USAGE$c_c: $c_y$script_name $c_d[${c_r}COMMAND$c_d] [${c_r}ARGS$c_d]$c_c"
+    printf '%s\n' "${c_b}COMMANDS$c_c:"
+    printf '  %-118s%s\n' "$c_w--set $c_d[${c_r}NUM$c_d]$c_c            $c_d|$c_w set $c_d[${c_r}NUM$c_d]$c_c" "assign a window to a pager $c_d[${c_r}NUM$c_d]$c_c"
+    printf '  %-118s%s\n' "$c_w--get $c_d[${c_r}NUM$c_d]$c_c            $c_d|$c_w get $c_d[${c_r}NUM$c_d]$c_c" "go to its desktop and focus $c_d[${c_r}NUM$c_d]$c_c"
+    printf '  %-72s%s\n' "$c_w--toggle               $c_d|$c_w toggle$c_c" 'toggle focus between windows 1 & 2'
+    printf '  %-168s%s\n' "$c_w--toggle $c_d[${c_r}NUM1$c_d]$c_c $c_d[${c_r}NUM2$c_d]$c_c $c_d|$c_w toggle $c_d[${c_r}NUM1$c_d]$c_c $c_d[${c_r}NUM2$c_d]$c_c" "toggle between windows $c_d[${c_r}NUM1$c_d]$c_c & $c_d[${c_r}NUM2$c_d]$c_c"
+    printf '  %-118s%s\n' "$c_w--unset $c_d[${c_r}NUM$c_d]$c_c          $c_d|$c_w unset $c_d[${c_r}NUM$c_d]$c_c" "unassign the window from pager $c_d[${c_r}NUM$c_d]$c_c"
+    printf '  %-72s%s\n' "$c_w--clear                $c_d|$c_w clear$c_c" 'remove all assigned windows from the pager'
+    printf '  %-72s%s\n\n' "$c_w--help                 $c_d|$c_w help$c_c" 'show this help'
+}
+
+# Assign a window to a number
+function setwin() {
+    local wininfo
+    while read -r; do
+        [[ "$REPLY" =~ xwininfo:\ Window\ id: ]] && {
+            wininfo="$REPLY"
+            break
+        }
+    done < <(xwininfo)
+    [[ -n "$wininfo" ]] \
+        || return 1
+    wininfo="${wininfo/xwininfo: Window id: }"
+    wininfo="${wininfo/ *}"
+    printf '%s\n' "$wininfo" > "${1:?}"
+}
+
+# Unset a given number's window
+function unsetwin() {
     [[ -f "$1" ]] \
-        && rm "$1"
+        && rm "${1:?}"
 }
 
-function _get(){
+# Select a given number's window
+function getwin() {
     # ensure the requested pager ref exists and still has its window
-    [[ ! -f "$1" ]] && exit 1
-    if [[ -s "$1" ]]; then
-        if [[ $(wmctrl -l \
-            | sed 's|^0x0||;s|\ .*||' \
-            | grep $(sed 's|0x||' ${1})) ]]; then
-                wmctrl -i -a "$(cat $1)"
+    error_text="no window has been defined for $c_v${1/*\/}"
+    [[ -f "$1" ]] || {
+        error "$error_text"
+        exit 1
+    }
+    [[ -s "$1" ]] || {
+        error "$error_text"
+        rm "${1:?}"
+        exit 1
+    }
+    local win="$(<"$1")"
+    local wminfo="$(wmctrl -l)"
+    wminfo="${wminfo//0x}"
+    [[ "$wminfo" =~ ${win//0x} ]] || {
+        # The window !exists so delete pager ref and exit
+        rm "${1:?}"
+        exit 1
+    }
+    wmctrl -i -a "$(<"$1")"
+}
+
+# Toggle windows
+function togglewins() {
+    # Set the first pager ref number to toggle
+    if [[ -n "$1" ]]; then
+        if [[ "$1" =~ ^[0-9][0-9]*$ ]]; then
+            num1="$1"
         else
-            # The window !exists so delete pager ref and exit
-            rm "$1"
             exit 1
         fi
     else
-        rm "$1"
+        num1='1'
+    fi
+
+    # Set the second pager ref number to toggle
+    if [[ -n "$2" ]]; then
+        if [[ "$2" =~ ^[0-9][0-9]*$ ]]; then
+            num2="$2"
+        else
+            exit 1
+        fi
+    else
+        num2='2'
+    fi
+
+    # Remove the toggle file and exit if either no longer exist
+    if [[ ! -f "$tmpdir/$num1" ]] || [[ ! -f "$tmpdir/$num2" ]]; then
+        [[ -f "$tmpdir/toggle" ]] \
+            && rm "${tmpdir:?}/toggle"
         exit 1
+    fi
+
+    # If both pager ref nums exist, create the toggle file if !exist
+    [[ ! -f "$tmpdir/toggle" ]] \
+        && printf '%s\n' "$num1" > "${tmpdir:?}/toggle"
+
+    # Set the pager ref num based on the current state
+    currwin="$(xprop -root _NET_ACTIVE_WINDOW)"
+    currwin="${currwin/* }"
+    [[ -n "$currwin" ]] \
+        || exit 1
+    if [[ $(<"$tmpdir/$num1") = "$currwin" ]]; then
+        dotoggle="$num2"
+    elif [[ $(<"$tmpdir/$num2") = "$currwin" ]]; then
+        dotoggle="$num1"
+    elif [[ $(<"$tmpdir/toggle") = "$num1" ]]; then
+        dotoggle="$num2"
+    else
+        dotoggle="$num1"
+    fi
+
+    # Attempt to 'get' the window we set
+    getwin "$tmpdir/$dotoggle"
+    if [[ ! -s "$tmpdir/$dotoggle" ]]; then
+        # Remove the toggle file if the pager ref num is gone
+        [[ -f "$tmpdir/toggle" ]] \
+            && rm "${tmpdir:?}/toggle"
+        exit 1
+    else
+        # Record the updated pager ref num if it still exists
+        printf '%s\n' "$dotoggle" > "${tmpdir:?}/toggle"
+        exit
     fi
 }
 
 # Create the temp directory if it doesn't exist
-[[ ! -d "$TMPDIR" ]] && install -d "$TMPDIR"
+[[ ! -d "$tmpdir" ]] \
+    && install -d "$tmpdir"
 
 # Exit with error if no arguments are given, otherwise parse for commands
 if [[ -n "$1" ]]; then
-    # The 'help' command
-    if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "help" ]; then
-        _help
-        exit
-
-    # The 'clear' command
-    elif [ "$1" = "--clear" ] || [ "$1" = "clear" ]; then
-        rm "${TMPDIR}"/*
-        exit
-
-    # The 'toggle' command
-    elif [ "$1" = "--toggle" ] || [ "$1" = "toggle" ]; then
-        # Set the first pager ref number to toggle
-        if [[ -n "$2" ]]; then
-            [[ $(grep -E '^[0-9][0-9]*$' <<< "$2") ]] \
-                && NUM1=$2 \
-                || exit 1
-        else
-            NUM1=1
-        fi
-
-        # Set the second pager ref number to toggle
-        if [[ -n "$3" ]]; then
-            [[ $(grep -E '^[0-9][0-9]*$' <<< "$3") ]] \
-                && NUM2="$3" \
-                || exit 1
-        else
-            NUM2=2
-        fi
-
-        # Remove the toggle file and exit if either no longer exist
-        if [[ ! -f "${TMPDIR}/${NUM1}" ]] \
-            || [[ ! -f "${TMPDIR}/${NUM2}" ]]; then
-                [[ -f "${TMPDIR}/toggle" ]] && rm "${TMPDIR}/toggle"
-                exit 1
-        fi
-
-        # If both pager ref nums exist, create the toggle file if !exist
-        [[ ! -f "${TMPDIR}/toggle" ]] \
-            && echo $NUM1 > "${TMPDIR}/toggle"
-
-        # Set the pager ref num based on the current state
-        CURRWIN=$(xprop -root _NET_ACTIVE_WINDOW | sed 's/.* //')
-        if [[ $(cat "${TMPDIR}/${NUM1}") = $CURRWIN ]]; then
-            DO_TOGGLE=$NUM2
-        elif [[ $(cat "${TMPDIR}/${NUM2}") = $CURRWIN ]]; then
-            DO_TOGGLE=$NUM1
-        elif [[ $(cat "${TMPDIR}/toggle") = $NUM1 ]]; then
-            DO_TOGGLE=$NUM2
-        else
-            DO_TOGGLE=$NUM1
-        fi
-
-        # Attempt to 'get' the window we set
-        _get "${TMPDIR}/${DO_TOGGLE}"
-        if [[ ! -s "${TMPDIR}/${DO_TOGGLE}" ]]; then
-            # Remove the toggle file if the pager ref num is gone
-            [[ -f "${TMPDIR}/toggle" ]] && rm "${TMPDIR}/toggle"
-            exit 1
-        else
-            # Record the updated pager ref num if it still exists
-            echo $DO_TOGGLE > "${TMPDIR}/toggle"
+    case "$1" in
+        -h|--help|help)
+            # Show the help text
+            show_help
             exit
-        fi
-
-    # Fail if '$2' doesn't exist or isn't a number
-    else
-        if [[ -z "$2" ]]; then
-            _syntaxerror
-        elif [[ ! $(grep -E '^[0-9][0-9]*$' <<< "$2") ]]; then
-            _syntaxerror
-        fi
-    fi
+            ;;
+        --clear|clear)
+            # Clear the assignments
+            rm "${tmpdir:?}"/*
+            exit
+            ;;
+        --toggle|toggle)
+            togglewins "$2" "$3"
+            ;;
+    esac
 fi
 
 # Parse for the remaining commands
-case "$1" in
-    --set|set)
-        # The 'set' command
-        _set "${TMPDIR}/${2}"
-        ;;
-    --unset|unset)
-        # The 'unset' command
-        _unset "${TMPDIR}/${2}"
-        ;;
-    --get|get)
-        # The 'get' command
-        _get "${TMPDIR}/${2}"
-        ;;
-    *)
-        # Fail for anything else
-        _syntaxerror
-        ;;
-esac
+if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9][0-9]*$ ]]; then
+    case "$1" in
+        --set|set)
+            # The 'set' command
+            setwin "$tmpdir/$2"
+            ;;
+        --unset|unset)
+            # The 'unset' command
+            unsetwin "$tmpdir/$2"
+            ;;
+        --get|get)
+            # The 'get' command
+            getwin "$tmpdir/$2"
+            ;;
+        *)
+            # Fail for anything else
+            syntaxerror
+            ;;
+    esac
+else
+    # Fail if a number wasn't passed as a second argument
+    syntaxerror
+fi

@@ -1,4 +1,4 @@
-# winpager #
+# WinPager #
 
 A dynamic window paging system for [X.Org](http://www.x.org/wiki).
 
@@ -25,15 +25,15 @@ The `DESTDIR` and `PREFIX` variables can optionally be set to configure the base
 
 ## Usage ##
 
-`winpager [command] {num(s)}`
+`winpager [COMMAND] [ARGS]`
 
 ### Commands ###
 
-* `winpager --set {num}`,  `winpager set {num}`: assign a window to a pager **{num}**
-* `winpager --get {num}`, `winpager get {num}`: go to its desktop and focus **{num}**
+* `winpager --set [NUM]`,  `winpager set [NUM]`: assign a window to a pager **[NUM]**
+* `winpager --get [NUM]`, `winpager get [NUM]`: go to its desktop and focus **[NUM]**
 * `winpager --toggle`, `winpager toggle`: toggle focus between windows 1 and 2
-* `winpager --toggle {num1} {num2}`, `winpager toggle {num} {num}`: toggle between windows **{num1}** and **{num2}**
-* `winpager --unset {num}`, `winpager unset {num}`: unassign the window from pager **{num}**
+* `winpager --toggle [NUM1] [NUM2]`, `winpager toggle [NUM] [NUM]`: toggle between windows **[NUM1]** and **[NUM2]**
+* `winpager --unset [NUM]`, `winpager unset [NUM]`: unset the window from pager **[NUM]**
 * `winpager --clear`, `winpager clear`: remove all assigned windows from the pager
 * `winpager --help`, `winpager help`: show the help
 
