@@ -26,22 +26,14 @@ dependencies=('wmctrl' 'xprop' 'xwininfo')
     c_g=$'\e[1;32m' # GREEN
     c_y=$'\e[1;33m' # YELLOW
     c_b=$'\e[1;34m' # BLUE
-    c_v=$'\e[1;35m' # VIOLET
+    c_m=$'\e[1;35m' # MAGENTA
     c_w=$'\e[1;37m' # WHITE
     c_c=$'\e[0m'    # DISABLES COLOUR
 }
 
-# Display error
-function error() {
+# Display an error and exit
+function error_exit() {
     printf '%s %s\n' "${c_b}ERROR$c_c:" "$c_w$1$c_c" >&2
-    exit 1
-}
-
-# Display a syntax error and show the help
-function syntaxerror() {
-    printf '\n' >&2
-    error "run with ${c_w}set$c_c, ${c_w}unset$c_c or ${c_w}get$c_c, followed by a number"
-    show_help
     exit 1
 }
 
@@ -84,13 +76,13 @@ function unsetwin() {
 # Select a given number's window
 function getwin() {
     # ensure the requested pager ref exists and still has its window
-    error_text="no window has been defined for $c_v${1/*\/}"
+    error_text="no window has been defined for $c_m${1/*\/}"
     [[ -f "$1" ]] || {
-        error "$error_text"
+        error_exit "$error_text"
         exit 1
     }
     [[ -s "$1" ]] || {
-        error "$error_text"
+        error_exit "$error_text"
         rm "${1:?}"
         exit 1
     }
@@ -115,7 +107,7 @@ function togglewins() {
             exit 1
         fi
     else
-        num1='1'
+        num1=1
     fi
 
     # Set the second pager ref number to toggle
@@ -126,7 +118,7 @@ function togglewins() {
             exit 1
         fi
     else
-        num2='2'
+        num2=2
     fi
 
     # Remove the toggle file and exit if either no longer exist
@@ -169,6 +161,20 @@ function togglewins() {
     fi
 }
 
+# Test for programs required by this script before running
+declare -a missing_dependencies
+for dep in "${dependencies[@]}"; do
+    type -P "$dep" >/dev/null \
+        || missing_dependencies=( ${missing_dependencies[@]} "$dep" )
+done
+[[ -n "${missing_dependencies[*]}" ]] && {
+    error_exit "${c_w}missing dependencies ($c_c$(
+        for dep in "${missing_dependencies[@]}"; do
+            printf '%s%s' "$c_m$dep$c_c" ', '
+        done | sed 's|, $||'
+    )$c_w)$c_c"
+}
+
 # Create the temp directory if it doesn't exist
 [[ ! -d "$tmpdir" ]] \
     && install -d "$tmpdir"
@@ -193,6 +199,7 @@ if [[ -n "$1" ]]; then
 fi
 
 # Parse for the remaining commands
+errortext="run with ${c_w}set$c_c, ${c_w}unset$c_c or ${c_w}get$c_c, followed by a number"
 if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9][0-9]*$ ]]; then
     case "$1" in
         --set|set)
@@ -209,10 +216,11 @@ if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9][0-9]*$ ]]; then
             ;;
         *)
             # Fail for anything else
-            syntaxerror
+            error_exit "$errortext"
             ;;
     esac
 else
     # Fail if a number wasn't passed as a second argument
-    syntaxerror
+    error_exit "$errortext"
 fi
+
