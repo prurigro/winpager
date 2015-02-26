@@ -168,10 +168,11 @@ for dep in "${dependencies[@]}"; do
         || missing_dependencies=( ${missing_dependencies[@]} "$dep" )
 done
 [[ -n "${missing_dependencies[*]}" ]] && {
-    error_exit "${c_w}missing dependencies ($c_c$(
-        for dep in "${missing_dependencies[@]}"; do
-            printf '%s%s' "$c_m$dep$c_c" ', '
-        done | sed 's|, $||'
+    error_exit "${c_w}missing dependencies ($(
+        for (( x=0; x < ${#missing_dependencies[@]}; x++ )); do
+            printf '%s' "$c_m${missing_dependencies[$x]}$c_c"
+            (( (( x + 1 )) < ${#missing_dependencies[@]} )) && printf '%s' ', '
+        done
     )$c_w)$c_c"
 }
 
