@@ -40,13 +40,13 @@ function error_exit() {
 # Display help information
 function show_help() {
     printf '\n%s\n\n' "${c_y}WinPager$c_c - ${c_w}A dynamic window paging system$c_c"
-    printf '%s\n\n' "${c_b}USAGE$c_c: $c_y$script_name $c_d[${c_r}COMMAND$c_d] [${c_r}ARGS$c_d]$c_c"
+    printf '%s\n\n' "${c_b}USAGE$c_c: $c_y$script_name ${c_d}[${c_r}COMMAND$c_d] [${c_r}ARGS$c_d]$c_c"
     printf '%s\n' "${c_b}COMMANDS$c_c:"
-    printf '  %-79s%s\n' "$c_w--set    $c_d|$c_w set $c_d[${c_r}NUM$c_d]$c_c" "assign a window to a pager $c_d[${c_r}NUM$c_d]$c_c"
-    printf '  %-79s%s\n' "$c_w--get    $c_d|$c_w get $c_d[${c_r}NUM$c_d]$c_c" "go to its desktop and focus $c_d[${c_r}NUM$c_d]$c_c"
+    printf '  %-79s%s\n' "$c_w--set    $c_d|$c_w set ${c_d}[${c_r}NUM$c_d]$c_c" "assign a window to a pager ${c_d}[${c_r}NUM$c_d]$c_c"
+    printf '  %-79s%s\n' "$c_w--get    $c_d|$c_w get ${c_d}[${c_r}NUM$c_d]$c_c" "go to its desktop and focus ${c_d}[${c_r}NUM$c_d]$c_c"
     printf '  %-58s%s\n' "$c_w--toggle $c_d|$c_w toggle$c_c" 'toggle focus between windows 1 & 2'
-    printf '  %-104s%s\n' "$c_w--toggle $c_d|$c_w toggle $c_d[${c_r}NUM1$c_d]$c_c $c_d[${c_r}NUM2$c_d]$c_c" "toggle between windows $c_d[${c_r}NUM1$c_d]$c_c & $c_d[${c_r}NUM2$c_d]$c_c"
-    printf '  %-79s%s\n' "$c_w--unset  $c_d|$c_w unset $c_d[${c_r}NUM$c_d]$c_c" "unassign the window from pager $c_d[${c_r}NUM$c_d]$c_c"
+    printf '  %-104s%s\n' "$c_w--toggle $c_d|$c_w toggle ${c_d}[${c_r}NUM1$c_d]$c_c ${c_d}[${c_r}NUM2$c_d]$c_c" "toggle between windows ${c_d}[${c_r}NUM1$c_d]$c_c & ${c_d}[${c_r}NUM2$c_d]$c_c"
+    printf '  %-79s%s\n' "$c_w--unset  $c_d|$c_w unset ${c_d}[${c_r}NUM$c_d]$c_c" "unassign the window from pager ${c_d}[${c_r}NUM$c_d]$c_c"
     printf '  %-58s%s\n' "$c_w--clear  $c_d|$c_w clear$c_c" 'remove all assigned windows from the pager'
     printf '  %-58s%s\n\n' "$c_w--help   $c_d|$c_w help$c_c" 'show this help text'
 }
@@ -54,14 +54,15 @@ function show_help() {
 # Assign a window to a number
 function setwin() {
     local wininfo
+
     while read -r; do
         [[ "$REPLY" =~ xwininfo:\ Window\ id: ]] && {
             wininfo="$REPLY"
             break
         }
     done < <(xwininfo)
-    [[ -n "$wininfo" ]] \
-        || return 1
+
+    [[ -n "$wininfo" ]] || return 1
     wininfo="${wininfo/xwininfo: Window id: }"
     wininfo="${wininfo/ *}"
     printf '%s\n' "$wininfo" > "${1:?}"
@@ -69,31 +70,37 @@ function setwin() {
 
 # Unset a given number's window
 function unsetwin() {
-    [[ -f "$1" ]] \
-        && rm "${1:?}"
+    [[ -f "$1" ]] && rm "${1:?}"
 }
 
 # Select a given number's window
 function getwin() {
+    local win wminfo
+
     # ensure the requested pager ref exists and still has its window
     error_text="no window has been defined for $c_m${1/*\/}"
+
     [[ -f "$1" ]] || {
         error_exit "$error_text"
         exit 1
     }
+
     [[ -s "$1" ]] || {
         error_exit "$error_text"
         rm "${1:?}"
         exit 1
     }
-    local win="$(<"$1")"
-    local wminfo="$(wmctrl -l)"
+
+    win="$(<"$1")"
+    wminfo="$(wmctrl -l)"
     wminfo="${wminfo//0x}"
+
     [[ "$wminfo" =~ ${win//0x} ]] || {
         # The window !exists so delete pager ref and exit
         rm "${1:?}"
         exit 1
     }
+
     wmctrl -i -a "$(<"$1")"
 }
 
@@ -123,8 +130,10 @@ function togglewins() {
 
     # Remove the toggle file and exit if either no longer exist
     if [[ ! -f "$tmpdir/$num1" ]] || [[ ! -f "$tmpdir/$num2" ]]; then
-        [[ -f "$tmpdir/toggle" ]] \
-            && rm "${tmpdir:?}/toggle"
+        if [[ -f "$tmpdir/toggle" ]]; then
+            rm "${tmpdir:?}/toggle"
+        fi
+
         exit 1
     fi
 
@@ -135,8 +144,8 @@ function togglewins() {
     # Set the pager ref num based on the current state
     currwin="$(xprop -root _NET_ACTIVE_WINDOW)"
     currwin="${currwin/* }"
-    [[ -n "$currwin" ]] \
-        || exit 1
+    [[ -n "$currwin" ]] || exit 1
+
     if [[ $(<"$tmpdir/$num1") = "$currwin" ]]; then
         dotoggle="$num2"
     elif [[ $(<"$tmpdir/$num2") = "$currwin" ]]; then
@@ -149,10 +158,10 @@ function togglewins() {
 
     # Attempt to 'get' the window we set
     getwin "$tmpdir/$dotoggle"
+
     if [[ ! -s "$tmpdir/$dotoggle" ]]; then
         # Remove the toggle file if the pager ref num is gone
-        [[ -f "$tmpdir/toggle" ]] \
-            && rm "${tmpdir:?}/toggle"
+        [[ -f "$tmpdir/toggle" ]] && rm "${tmpdir:?}/toggle"
         exit 1
     else
         # Record the updated pager ref num if it still exists
@@ -163,10 +172,13 @@ function togglewins() {
 
 # Test for programs required by this script before running
 declare -a missing_dependencies=()
+
 for dep in "${dependencies[@]}"; do
-    type -P "$dep" >/dev/null \
-        || missing_dependencies=( ${missing_dependencies[@]} "$dep" )
+    if ! type -P "$dep" >/dev/null; then
+        missing_dependencies=( "${missing_dependencies[@]}" "$dep" )
+    fi
 done
+
 [[ -n "${missing_dependencies[*]}" ]] && {
     error_exit "${c_w}missing dependencies ($(
         for (( x=0; x < ${#missing_dependencies[@]}; x++ )); do
@@ -177,8 +189,7 @@ done
 }
 
 # Create the temp directory if it doesn't exist
-[[ ! -d "$tmpdir" ]] \
-    && install -d "$tmpdir"
+[[ ! -d "$tmpdir" ]] && install -d "$tmpdir"
 
 # Exit with error if no arguments are given, otherwise parse for commands
 if [[ -n "$1" ]]; then
@@ -201,6 +212,7 @@ fi
 
 # Parse for the remaining commands
 errortext="run with ${c_w}set$c_c, ${c_w}unset$c_c or ${c_w}get$c_c, followed by a number"
+
 if [[ -n "$2" ]] && [[ "$2" =~ ^[0-9][0-9]*$ ]]; then
     case "$1" in
         --set|set)
