@@ -224,4 +224,3 @@ else
     # Fail if a number wasn't passed as a second argument
     error_exit "$errortext"
 fi
-
